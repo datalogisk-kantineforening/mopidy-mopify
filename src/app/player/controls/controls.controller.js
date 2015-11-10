@@ -24,21 +24,23 @@ angular.module('mopify.player.controls', [
     });
 
     $scope.$on('mopidy:event:volumeChanged', function(event, data){
-        $scope.volume = data.volume;
+        var volumebarWidth = document.getElementsByClassName("volumebar")[0].clientWidth;
+        $scope.volume = Math.pow(data.volume/100, 1/3)*volumebarWidth;
     });
 
     // If Mopidy is online we collect the init data about playback, volume and shuffle mode
     $scope.$on('mopidy:state:online', function(){
         // Get volume
         mopidyservice.getVolume().then(function(volume){
-            $scope.volume = volume;
+            var volumebarWidth = document.getElementsByClassName("volumebar")[0].clientWidth;
+            $scope.volume = Math.pow(volume/100, 1/3)*volumebarWidth;
 
             if(volume > 50)
                 $scope.volumeIcon = "ss-highvolume";
             else if(volume > 0)
                 $scope.volumeIcon = "ss-lowvolume";
             else
-                $scope.volumeIcon = "ss-volume";    
+                $scope.volumeIcon = "ss-volume";
         });
 
         // Get playback state
@@ -104,11 +106,11 @@ angular.module('mopify.player.controls', [
         var layerX = event.layerX;
         var target = event.target || event.srcElement;
         var volumebarWidth = (mobile) ? angular.element(target).parent()[0].clientWidth : target.clientWidth;
-        
-        var volume = (layerX / volumebarWidth) * 100;
+
+        var volume = Math.pow(layerX / volumebarWidth, 3) * 100;
 
         // Set in scope and send to mopidy
-        $scope.volume = volume;
+        $scope.volume = Math.pow(volume/100, 1/3) * volumebarWidth ;
         mopidyservice.setVolume(volume);
     };
 
@@ -129,10 +131,9 @@ angular.module('mopify.player.controls', [
             var layerX = event.layerX;
             var volumebarWidth = (mobile) ? angular.element(target).parent()[0].clientWidth : target.clientWidth;
 
-            var volume = (layerX / volumebarWidth) * 100;
-
+            var volume = Math.pow(layerX / volumebarWidth, 3) * 100;
             // Set in scope and send to mopidy
-            $scope.volume = volume;
+            $scope.volume = Math.pow(volume/100, 1/3) * volumebarWidth ;
             mopidyservice.setVolume(volume);
         }
     };
@@ -159,7 +160,7 @@ angular.module('mopify.player.controls', [
 
     /**
      * Open the volume overlay when on a mobile device
-     * 
+     *
      * @return {void}
      */
     $scope.openVolumeOverlay = function(){
@@ -170,7 +171,7 @@ angular.module('mopify.player.controls', [
 
     /**
      * Close the volume overlay
-     * 
+     *
      * @return {void}
      */
     $scope.closeVolumeOverlay = function(){
