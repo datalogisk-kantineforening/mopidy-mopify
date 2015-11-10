@@ -1,4 +1,4 @@
-<div class="tileart">
+ <div class="tileart" ng-if="service.name !== 'Spotify' || !service.disabled">
     <div class="hoverwrap">
         <div class="iconwrap">
             <div class="icon" ng-class="(service.hasSettings && service.connected) ? 'col-xs-6' : 'col-xs-12'" title="Connect/Disconnect service">
@@ -11,7 +11,7 @@
     </div>
     <img ng-src="{{ service.image }}"/>
 </div>
-<div class="tileinfo">
+<div class="tileinfo" ng-if="service.name !== 'Spotify' || !service.disabled">
     <span class="name">{{ service.name }} <div class="status"><div class="connection" ng-class="service.connected ? 'connected' : 'disconnected'"></div></div></span>
     <span class="year">{{ service.description }}</span>
 </div>

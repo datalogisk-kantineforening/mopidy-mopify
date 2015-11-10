@@ -5,7 +5,7 @@
     .module('spotify', [])
     .provider('Spotify', function () {
 
-      // Module global settings.
+      // Module global settings. TEST KAGE
       var settings = {};
       settings.clientId = null;
       settings.redirectUri = null;

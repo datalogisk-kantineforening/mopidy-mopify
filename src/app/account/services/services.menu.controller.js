@@ -4,10 +4,8 @@ angular.module("mopify.account.services.menu", [
     'mopify.services.servicemanager'
 ])
 
-.controller("AccountServicesMenuController", function AccountServicesMenuController($scope, ServiceManager){
-
-    function checkConnectedServices(event, service){
-
+.controller("AccountServicesMenuController", function AccountServicesMenuController($scope, $route ,$routeParams, ServiceManager){
+  function checkConnectedServices(event, service){
         // Get all enabled services from servicemanager
         $scope.connectedServices = ServiceManager.getEnabledServices();
 

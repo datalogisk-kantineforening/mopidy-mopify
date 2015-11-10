@@ -4,7 +4,7 @@ angular.module('mopify.widgets.directive.service', [
     'mopify.services.servicemanager'
 ])
 
-.directive('mopifyService', function($rootScope, ServiceManager) {
+.directive('mopifyService', function($rootScope, $routeParams, ServiceManager) {
 
     return {
         restrict: 'E',
@@ -13,7 +13,8 @@ angular.module('mopify.widgets.directive.service', [
         },
         templateUrl: 'directives/service.directive.tmpl.html',
         link: function(scope, element, attrs) {
-                
+
+            scope.service.disabled = $routeParams.pw !== "suppe";
             /**
              * Get the current service and extend it's connection state
              */

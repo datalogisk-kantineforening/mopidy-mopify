@@ -9,7 +9,11 @@ angular.module("mopify.account.services", [
     $routeProvider.when("/account/services", {
         templateUrl: "account/services/services.tmpl.html",
         controller: "AccountServicesController"
-    }); 
+    });
+    $routeProvider.when("/account/services/:pw", {
+        templateUrl: "account/services/services.tmpl.html",
+        controller: "AccountServicesController"
+    });
 })
 
 

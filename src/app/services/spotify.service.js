@@ -3,10 +3,11 @@ angular.module("mopify.services.spotifylogin", [
     'mopify.services.servicemanager',
     'mopify.services.versionmanager',
     'LocalStorageModule',
-    'mopify.services.util'
+    'mopify.services.util',
+    'mopify.services.unlocalstorage'
 ])
 
-.factory("SpotifyLogin", function($q, $rootScope, $timeout, $document, $http, Spotify, $interval, ServiceManager, localStorageService, VersionManager, util){
+.factory("SpotifyLogin", function($q, $rootScope, $timeout, $document, $http, Spotify, $interval, ServiceManager, localStorageService, VersionManager, util, UnLocalStorage){
     "use strict";
 
     // Get body
@@ -14,13 +15,18 @@ angular.module("mopify.services.spotifylogin", [
 
     // Create empty frames object
     var frame;
+    this.refresh_token = null;
+    this.expires = null;
+    this.access_token = null;
+    this.user = null;
+    this.mopifyversion = VersionManager.version;
 
     // Create the iframe in the document
     function createFrame(service){
-        frame = document.createElement("iframe"); 
-        frame.setAttribute("src", "https://bitlabs.nl/mopify/auth/" + service + "/frame/#" + window.location.host); 
-        frame.style.width = 1 + "px"; 
-        frame.style.height = 1 + "px"; 
+        frame = document.createElement("iframe");
+        frame.setAttribute("src", "https://bitlabs.nl/mopify/auth/" + service + "/frame/#" + window.location.host);
+        frame.style.width = 1 + "px";
+        frame.style.height = 1 + "px";
 
         // Add to body and register in frames object
         body.append(frame);
@@ -28,41 +34,51 @@ angular.module("mopify.services.spotifylogin", [
 
     // Create communication frame for Spotify
     createFrame("spotify");
-
+    var spotifyService = {
+                name: "Spotify",
+                description: "Search and manage playlists and get the latests charts",
+                image: "./assets/images/spotify-icon.png",
+                hasSettings: true,
+                defaultSettings: {
+                    loadspotifyplaylists: true
+                }
+            };
     var tokenStorageKey = "spotifytokens";
 
     function SpotifyLogin(){
         this.frame = frame;
         this.connected = false;
         this.lastPositiveLoginCheck = 0;
+        var that = this;
+        UnLocalStorage.get().then(function(resp){
+          if (!resp) {
+            that.refresh_token = null;
+            that.expires = null;
+            that.access_token = null;
+            that.user = null;
+            that.mopifyversion = VersionManager.version;
+          } else {
+            that.refresh_token = resp.refresh_token;
+            that.expires = resp.expires;
+            that.access_token = resp.access_token;
+            that.user = resp.user;
+            that.mopifyversion = resp.mopifyversion;
+          }
+          // Get the login status from Spotify
+          that.getLoginStatus().then(function(resp){
+              if (resp.status === "connected") {
+                console.log("YOU FUCKING WHAT MATE, YOU SUCK A DICK!");
+                ServiceManager.enableService(spotifyService);
+              }
+              $rootScope.$broadcast("mopify:spotify:" + resp.status.replace(" ", ""));
+          });
+          // Start token checking
+          that.checkTokens();
 
-        // Get tokens and info from storage
-        if(localStorageService.get(tokenStorageKey) !== null){
-            this.refresh_token = localStorageService.get(tokenStorageKey).refresh_token;
-            this.expires = localStorageService.get(tokenStorageKey).expires_in;
-            this.access_token = localStorageService.get(tokenStorageKey).access_token;
-            this.user = localStorageService.get(tokenStorageKey).user;
-            this.mopifyversion = localStorageService.get(tokenStorageKey).mopifyversion;
-        }
-        else{
-            this.refresh_token = null;
-            this.expires = null;
-            this.access_token = null;
-            this.user = null;
-            this.mopifyversion = VersionManager.version;
-        }
-
-        // Get the login status from Spotify
-        this.getLoginStatus().then(function(resp){
-            $rootScope.$broadcast("mopify:spotify:" + resp.status.replace(" ", ""));
+          // Check if old token which needs refresh after installing a new version
+          // This makes sure the new scopes are added to the toke
+          that.checkOldToken();
         });
-
-        // Start token checking
-        this.checkTokens();
-
-        // Check if old token which needs refresh after installing a new version
-        // This makes sure the new scopes are added to the toke
-        this.checkOldToken();
     }
 
     /**
@@ -74,10 +90,10 @@ angular.module("mopify.services.spotifylogin", [
         if((this.expires === null || this.expires === undefined || Date.now() >= this.expires) && ServiceManager.isEnabled("spotify")){
             if(this.refresh_token !== null){
                 this.refresh();
-            }   
+            }
             else{
                 this.login(true);
-            } 
+            }
         }
 
         // Run this check again after 10 seconds
@@ -94,45 +110,38 @@ angular.module("mopify.services.spotifylogin", [
     SpotifyLogin.prototype.getLoginStatus = function(){
         var that = this;
         var deferred = $q.defer();
+        // Check with last login check
+        if(this.refresh_token === null){
+            deferred.resolve({ status: "not connected" });
+        }
+        else if(Date.now() - that.lastPositiveLoginCheck > 600000){
+            // Set the old token from the localstorage and check if that one still works
+            var oldToken = this.access_token;
 
-        if(ServiceManager.isEnabled("spotify") !== true){
-            deferred.reject();
+            Spotify.setAuthToken(oldToken);
+
+            // Make the call to spotify to see if we are logged in
+            Spotify.getCurrentUser().then(function(data){
+                deferred.resolve({ status: "connected" });
+                that.connected = true;
+
+                // Set user data
+                that.user = data;
+
+                // Set last login check
+                that.lastPositiveLoginCheck = Date.now();
+
+            }, function(errData){
+                // If status equals 401 we have to reauthorize the user
+                if(errData.error.status == 401){
+                    that.connected = false;
+                    deferred.resolve({ status: "not connected" });
+                }
+            });
         }
         else{
-            // Check with last login check
-            if(localStorageService.get(tokenStorageKey) === null){
-                deferred.resolve({ status: "not connected" });
-            }
-            else if(Date.now() - that.lastPositiveLoginCheck > 600000){
-                // Set the old token from the localstorage and check if that one still works
-                var oldToken = localStorageService.get(tokenStorageKey).access_token;
-
-                Spotify.setAuthToken(oldToken);
-
-                // Make the call to spotify to see if we are logged in
-                Spotify.getCurrentUser().then(function(data){
-                    deferred.resolve({ status: "connected" });
-                    that.connected = true;
-
-                    // Set user data
-                    that.user = data;
-
-                    // Set last login check
-                    that.lastPositiveLoginCheck = Date.now();
-
-                }, function(errData){
-                    // If status equals 401 we have to reauthorize the user
-                    if(errData.error.status == 401){
-                        that.connected = false;
-                        deferred.resolve({ status: "not connected" });
-                    }
-                });
-            }
-            else{
-                deferred.resolve({ status: "connected" });
-            }    
+            deferred.resolve({ status: "connected" });
         }
-
         return deferred.promise;
     };
 
@@ -166,7 +175,7 @@ angular.module("mopify.services.spotifylogin", [
                 Spotify.setAuthToken(result.access_token);
 
                 // Save tokens
-                localStorageService.set(tokenStorageKey, {
+                UnLocalStorage.set({
                     access_token: that.access_token,
                     refresh_token: that.refresh_token,
                     expires_in: that.expires,
@@ -240,7 +249,7 @@ angular.module("mopify.services.spotifylogin", [
                 if(that.access_token !== undefined){
                     // Set the auth token
                     Spotify.setAuthToken(that.access_token);
-                        
+
                     // Check if the auth token works
                     Spotify.getCurrentUser().then(function(data){
                         that.connected = true;
@@ -257,7 +266,7 @@ angular.module("mopify.services.spotifylogin", [
                         };  
 
                         // Save token and resolve
-                        localStorageService.set(tokenStorageKey, tokens);
+                        UnLocalStorage.set(tokens);
                         deferred.resolve(that.access_token);
 
                     }, function(errData){
@@ -283,8 +292,6 @@ angular.module("mopify.services.spotifylogin", [
      */
     SpotifyLogin.prototype.disconnect = function(){
         // Remove storage token
-        localStorageService.remove(tokenStorageKey);
-
         // Clear Spotify auth token
         Spotify.setAuthToken("");
 
