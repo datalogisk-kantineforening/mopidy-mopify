@@ -87,7 +87,7 @@ angular.module('mopify.services.mopidy', [
 
             // Get mopidy ip and port from settigns
             var mopidyip = Settings.get("mopidyip", $location.host());
-            var mopidyport = Settings.get("mopidyport", $location.port());
+            var mopidyport = Settings.get("mopidyport", "6680");
 
 			// Initialize mopidy
             try{
