@@ -12,7 +12,7 @@ angular.module("mopify.services.queuemanager", [
 
     // Get mopidy ip and post
     var mopidyip = Settings.get("mopidyip", $location.host());
-    var mopidyport = Settings.get("mopidyport", $location.port());
+    var mopidyport = Settings.get("mopidyport", "6680");
 
     // Setup websoclet
     var protocol = (typeof document !== "undefined" && document.location.protocol === "https:") ? "wss://" : "ws://";

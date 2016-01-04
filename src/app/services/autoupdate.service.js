@@ -8,7 +8,7 @@
     var canupdate = false;
 
     var mopidyip = Settings.get("mopidyip", $location.host());
-    var mopidyport = Settings.get("mopidyport", $location.port());
+    var mopidyport = Settings.get("mopidyport", "6680");
 
     function AutoUpdate(){
         this.autoupdate = Settings.get("autoupdate", false);
