@@ -502,6 +502,7 @@ module.exports = function ( grunt ) {
             process: function ( contents, path ) {
                 return grunt.template.process( contents, {
                     data: {
+                        timestamp: Date.now(),
                         scripts: jsFiles,
                         styles: cssFiles,
                         version: grunt.config( 'pkg.version' )

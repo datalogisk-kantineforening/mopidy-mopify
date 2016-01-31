@@ -17,7 +17,7 @@
         <link href="assets/images/favicon.ico" rel="icon" type="image/x-icon" />
 
         <% styles.forEach( function ( file ) { %>
-        <link rel="stylesheet" type="text/css" href="<%= file %>" /> <%
+        <link rel="stylesheet" type="text/css" href="<%= file %>?<%= timestamp %>" /> <%
         }); %>
 
         <link rel="manifest" href="assets/manifest.json">
@@ -56,7 +56,7 @@
 
         <!-- Grunt will handle this part -->
         <% scripts.forEach( function ( file ) { %>
-        <script type="text/javascript" src="<%= file %>"></script> <%
+        <script type="text/javascript" src="<%= file %>?<%= timestamp %>"></script> <%
         }); %>
 
         <script>
