@@ -1,5 +1,10 @@
 #Changelog
 
+v1.5.15 (14-02-2016)
+--------------------
+- Add check for empty search response [#181](https://github.com/dirkgroenen/mopidy-mopify/issues/181)
+- Add icon for Safari [#182](https://github.com/dirkgroenen/mopidy-mopify/issues/182)
+
 v1.5.14 (17-01-2016)
 --------------------
 - Fix QueueManager broken connection fixer
@@ -21,7 +26,7 @@ v1.5.12 (27-12-2015)
 v1.5.11 (27-12-2015)
 -------------------
 
-- Add local playlist search on search results [#145](https://github.com/dirkgroenen/mopidy-mopify/issues/145) 
+- Add local playlist search on search results [#145](https://github.com/dirkgroenen/mopidy-mopify/issues/145)
 - Change repeat behaviour to single repeat [#154](https://github.com/dirkgroenen/mopidy-mopify/issues/154)
 - Remove set consume [#146](https://github.com/dirkgroenen/mopidy-mopify/issues/146)
 - Do track URI existence check which brings back now playing [#161](https://github.com/dirkgroenen/mopidy-mopify/issues/161)
