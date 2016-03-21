@@ -79,13 +79,13 @@ angular.module('mopify.player.controls', [
 
     $scope.next = function(){
         mopidyservice.next().then(function(data){
-            $rootScope.$broadcast("mopify:player:updatePlayerInformation");  
+            $rootScope.$broadcast("mopify:player:updatePlayerInformation");
         });
     };
 
     $scope.prev = function(){
         mopidyservice.previous().then(function(data){
-            $rootScope.$broadcast("mopify:player:updatePlayerInformation");  
+            $rootScope.$broadcast("mopify:player:updatePlayerInformation");
         });
     };
 
@@ -100,6 +100,11 @@ angular.module('mopify.player.controls', [
                 $scope.stateIcon = "ss-pause";
             }
         });
+    };
+
+    $scope.stop = function() {
+        mopidyservice.stop();
+        $scope.stateIcon = "ss-pause";
     };
 
     $scope.volumebarMouseClick = function(event, mobile){
@@ -209,6 +214,14 @@ angular.module('mopify.player.controls', [
         callback: function(event, hotkey) {
             event.preventDefault();
             $scope.playpause();
+        }
+    });
+    hotkeys.add({
+        combo: 'ctrl+s',
+        description: 'Stop playback',
+        callback: function(event, hotkey) {
+            event.preventDefault();
+            $scope.stop();
         }
     });
     hotkeys.add({
